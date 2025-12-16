@@ -23,7 +23,36 @@ pnpm run dev
 
 # Notes on LLM Integration
 
-I would connect to a real LLM API in production by changing `ai-chat-bot.tsx` like so:
+I would connect to a real LLM API in production with these steps:
+
+I will make sure to structure the payload as follow:
+
+```json
+{
+  // all questionContext data are actual metadata from the question
+  "questionContext": {
+    "questionId": "q_spm_99",
+    "topic": "Standard Form",
+    "difficulty": "Hard",
+    "rawText": "Convert the number..."
+  },
+
+  // embedding the RECENT chat history is important for context
+  // by making sure to not send too much data and consuming too much
+  // token
+  "chatHistory": [
+    { "isUser": true, "text": "Give me a hint" },
+    { "isUser": false, "text": "Absolutely!" }
+  ],
+
+  // recent message is important to allow server to determine
+  // whether to answer with chatHistory or give out "hint" or "steps"
+  // or general answer without context instead
+  "recentMessage": "Some question..."
+}
+```
+
+Then change the handler in `ai-chat-box.tsx` like so:
 
 ```tsx
 ...
@@ -59,31 +88,4 @@ I would connect to a real LLM API in production by changing `ai-chat-bot.tsx` li
       setLoading(false);
     }
   };
-```
-
-Where the payload will be structured as follow:
-
-```json
-{
-  // all questionContext data are actual metadata from the question
-  "questionContext": {
-    "questionId": "q_spm_99",
-    "topic": "Standard Form",
-    "difficulty": "Hard",
-    "rawText": "Convert the number..."
-  },
-
-  // embedding the RECENT chat history is important for context
-  // by making sure to not send too much data and consuming too much
-  // token
-  "chatHistory": [
-    { "isUser": true, "text": "Give me a hint" },
-    { "isUser": false, "text": "Absolutely!" }
-  ],
-
-  // recent message is important to allow server to determine
-  // whether to answer with chatHistory or give out "hint" or "steps"
-  // or general answer without context instead
-  "recentMessage": "Some question..."
-}
 ```
